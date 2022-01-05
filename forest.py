@@ -22,9 +22,16 @@ class Cell:
 
 
 class Grid:
-    _neighbors_index = [(-1, 0), (0, -1), (0, 1), (1, 0)]
 
-    def __init__(self, density=0.5):
+    def __init__(
+            self,
+            density=0.5,
+            neighbors="neumann"
+    ):
+        if neighbors == "neumann":
+            self._neighbors_index = [(-1, 0), (0, -1), (0, 1), (1, 0)]
+        elif neighbors == "moore":
+            self._neighbors_index = [(-1, 0), (0, -1), (0, 1), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
         self.grid = np.zeros(__gridDim__, dtype='int8')
         nx, ny = __gridDim__
         self.initial_nb_trees = 0
@@ -61,8 +68,13 @@ class Grid:
 
 
 class Scene:
-    def __init__(self, density=0.5, display=True):
-        self.grid = Grid(density)
+    def __init__(
+            self,
+            density=0.5,
+            neighbors="neumann",
+            display=True
+    ):
+        self.grid = Grid(density, neighbors)
         self._display = display
         if self._display:
             pygame.init()
@@ -79,8 +91,6 @@ class Scene:
                                  Cell.get_color_cell(self.grid.grid.item((x, y))),
                                  (x * __cellSize__, y * __cellSize__, __cellSize__, __cellSize__))
 
-        # self.draw_text("Automaton", (20, 20))
-
     def draw_text(self, text, position, color=(255, 64, 64)):
         if self._display:
             self._screen.blit(self._font.render(text, True, color), position)
@@ -96,9 +106,8 @@ class Scene:
                 self.grid.grid[x, y] = 0
         return state_changed
 
-    # call this function if evolution stops
     def nb_tree(self):
-        return self.grid.grid.sum()
+        return (self.grid.grid == Cell.TREE).sum()
 
 
 def main():
